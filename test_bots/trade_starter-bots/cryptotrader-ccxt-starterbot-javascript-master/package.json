@@ -1,0 +1,34 @@
+{
+  "name": "crypto-trader-js-starterbot",
+  "version": "1.0.0",
+  "description": "Crypto Trader Riddles.io Javascript Starterbot",
+  "main": "main.js",
+  "author": "Dino Hensen",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "build": "rm -f dist/main.js && webpack && bin/build",
+    "smoke-test": "bin/smoke_test",
+    "smoke-test-follow": "nodemon --exec bin/smoke_test",
+    "test": "jest",
+    "test-follow": "jest --watchAll --bail"
+  },
+  "devDependencies": {
+    "eslint": "^4.18.1",
+    "eslint-config-prettier": "^2.9.0",
+    "eslint-plugin-jest": "^21.15.1",
+    "eslint-plugin-prettier": "^2.6.0",
+    "jest": "^22.4.3",
+    "nodemon": "^1.17.3",
+    "prettier": "^1.11.0",
+    "semaphore": "^1.1.0",
+    "webpack": "^4.8.3",
+    "webpack-cli": "^2.1.3"
+  },
+  "dependencies": {
+    "ccxt": "^1.13.41"
+  },
+  "jest": {
+    "testEnvironment": "node"
+  }
+}
