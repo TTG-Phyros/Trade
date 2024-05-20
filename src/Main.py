@@ -42,6 +42,13 @@ class Candles:
     
     def getLow(self):
         return self.low
+    
+    def isDoji(self):
+        maxPercentOfVariation = 0.5
+        percentOfVariation = 100 - ((self.close / self.open) * 100) if self.open > self.close else 100 - ((self.open / self.close) * 100)
+        if percentOfVariation < maxPercentOfVariation:
+            return True
+        return False
 
     def getLowHighPart(self):
         lowDistance = self.close - self.low if self.close < self.open else self.open - self.low
@@ -70,6 +77,10 @@ class Algorithm:
     def __init__(self):
         self.buying = False
         self.selling = False
+        self.percentOfChange = []
+        self.uncertainty = False
+        self.downTendance = False
+        self.upTendance = False
 
     def getBuying(self):
         return self.buying
@@ -77,9 +88,31 @@ class Algorithm:
     def getSelling(self):
         return self.selling
     
-    def run(self):
-        self.buying = True
+    def run(self, candles):
+        self.buying = False
         self.selling = False
+        self.percentOfChange = []
+        self.uncertainty = True
+        last5Candles = candles[-5:]
+        doji = 0
+        uncertainty = False
+        i = 0
+        for candle in last5Candles:
+            percent = ((candles[(-6 + i)].getMedian() - candles[(-5 + i)].getMedian()) / candles[(-6 + i)].getMedian()) * -1
+            self.percentOfChange.append(percent)
+            if candle.isDoji():
+                doji += 1
+            i += 1
+        if doji >= 3:
+            uncertainty = True
+        if sum(self.percentOfChange) > 0:
+            self.upTendance = True
+        else:
+            self.downTendance = True
+        if not uncertainty and self.downTendance and sum(self.percentOfChange) > 0.05 - (candles[-1].getMedian() / 100000) * 0.05:
+            self.buying = True
+        if not uncertainty and self.upTendance and sum(self.percentOfChange) < 0.05 - (candles[-1].getMedian() / 100000) * 0.05:
+            self.selling = True
 
 class Bot:
     def __init__(self):
@@ -113,7 +146,7 @@ class Bot:
         if (self.data[0] == "update" and self.data[1] == "game" and self.data[2] == "stacks"):
             self.stacks.addStack(self.data[3:])
         if (self.data[0] == "action"):
-            self.algo.run()
+            self.algo.run(self.candles)
             if (self.algo.getBuying() and (self.stacks.hasStack("USDT") and self.stacks.getStack("USDT") > 51)):
                 print(f'buy USDT_BTC {self.getValueBuyable(50)}', flush=True)
             elif (self.algo.getSelling() and (self.stacks.hasStack("BTC") and self.stacks.getStack("BTC") > self.getValueSellable(50))):
