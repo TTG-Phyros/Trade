@@ -103,15 +103,21 @@ class Algorithm:
             if candle.isDoji():
                 doji += 1
             i += 1
-        if doji >= 3:
+        medianChange = 0
+        for i in range(candles.__len__()):
+            if i >= 1:
+                percent = ((candles[(i - 1)].getMedian() - candles[i].getMedian()) / candles[(i - 1)].getMedian()) * -1
+                medianChange += percent
+        medianChange /= candles.__len__()
+        if doji >= 2:
             uncertainty = True
         if sum(self.percentOfChange) > 0:
             self.upTendance = True
         else:
             self.downTendance = True
-        if not uncertainty and self.downTendance and sum(self.percentOfChange) > 0.05 - (candles[-1].getMedian() / 100000) * 0.05:
+        if not uncertainty and self.downTendance and sum(self.percentOfChange) > (3  * abs(medianChange)):
             self.buying = True
-        if not uncertainty and self.upTendance and sum(self.percentOfChange) < 0.05 - (candles[-1].getMedian() / 100000) * 0.05:
+        if not uncertainty and self.upTendance and sum(self.percentOfChange) < (3  * abs(medianChange)):
             self.selling = True
 
 class Bot:
