@@ -9,6 +9,59 @@
 import sys
 import math
 
+class Pattern:
+    def __init__(self):
+        self.buying = False
+        self.selling = False
+        self.testDict = {
+            "abandonnedBaby" : self.isAbandonnedBaby,
+            "beltHold" : self.isBeltHold,
+        }
+
+    def isAbandonnedBaby(self, candles):
+        candle2 = candles[-3]
+        candle1 = candles[-2]
+        candle0 = candles[-1]
+        if (2 * abs(candle2.getClose() - candle2.getOpen()) > candle2.getHigh() - candle2.getLow() and
+            candle2.getClose() > candle2.getOpen() and
+            20 * abs(candle1.getClose() - candle1.getOpen()) <= candle1.getHigh() - candle1.getLow() and
+            5 * ((candle1.getClose() + candle1.getOpen()) / 2 - candle1.getLow()) >= 2 * (candle1.getHigh() - candle1.getLow()) and
+            5 * ((candle1.getClose() + candle1.getOpen()) / 2 - candle1.getLow()) <= 3 * (candle1.getHigh() - candle1.getLow()) and
+            candle1.getLow() > candle2.getHigh() and
+            candle0.getClose() < candle0.getOpen() and
+            candle0.getHigh() < candle1.getLow() and
+            candle0.getOpen() > candle2.getClose() and
+            (candle0.getLow() > candle2.getOpen() or candle0.getClose() < candle2.getLow())):
+            self.buying = True
+            self.selling = False
+            return True
+        return False
+    
+    def isBeltHold(self, candles):
+        candle3 = candles[-4]
+        candle2 = candles[-3]
+        candle1 = candles[-2]
+        candle0 = candles[-1]
+        if (candle0.getOpen() == min(candle0.getOpen(), candle1.getOpen()) and
+            candle0.getOpen() < candle1.getLow() and
+            10 * (candle0.getClose() - candle0.getOpen()) >= 7 * (candle0.getHigh() - candle0.getLow()) and
+            5 * (candle0.getHigh() - candle0.getLow()) >= 6 * (((candle0.getHigh()+ candle1.getHigh()) / 2) - ((candle0.getLow() + candle1.getLow()) / 2)) and
+            100 * (candle0.getOpen() - candle0.getLow()) <= candle0.getHigh() - candle0.getLow() and
+            2 * candle0.getClose() <= candle1.getHigh() - candle1.getLow() and
+            candle1.getHigh() > candle1.getLow() and
+            candle0.getHigh() > candle0.getLow() and
+            candle1.getClose() < candle2.getClose() and
+            candle2.getClose() < candle3.getClose()):
+            self.buying = False
+            self.selling = True
+            return True
+        return False
+    
+    def checkPattern(self, candles):
+        for name, function in self.testDict.items():
+            if (function(candles) == True):
+                return name
+
 class Settings:
     def __init__(self):
         self.data = ""
@@ -89,36 +142,38 @@ class Algorithm:
         return self.selling
     
     def run(self, candles):
-        self.buying = False
-        self.selling = False
-        self.percentOfChange = []
-        self.uncertainty = True
-        last5Candles = candles[-5:]
-        doji = 0
-        uncertainty = False
-        i = 0
-        for candle in last5Candles:
-            percent = ((candles[(-6 + i)].getMedian() - candles[(-5 + i)].getMedian()) / candles[(-6 + i)].getMedian()) * -1
-            self.percentOfChange.append(percent)
-            if candle.isDoji():
-                doji += 1
-            i += 1
-        medianChange = 0
-        for i in range(candles.__len__()):
-            if i >= 1:
-                percent = ((candles[(i - 1)].getMedian() - candles[i].getMedian()) / candles[(i - 1)].getMedian()) * -1
-                medianChange += percent
-        medianChange /= candles.__len__()
-        if doji >= 2:
-            uncertainty = True
-        if sum(self.percentOfChange) > 0:
-            self.upTendance = True
-        else:
-            self.downTendance = True
-        if not uncertainty and self.downTendance and sum(self.percentOfChange) > (3  * abs(medianChange)):
-            self.buying = True
-        if not uncertainty and self.upTendance and sum(self.percentOfChange) < (3  * abs(medianChange)):
-            self.selling = True
+        self.pattern = Pattern()
+        self.pattern.checkPattern(candles)
+        self.buying = self.pattern.buying
+        self.selling = self.pattern.selling
+        # self.percentOfChange = []
+        # self.uncertainty = True
+        # last5Candles = candles[-5:]
+        # doji = 0
+        # uncertainty = False
+        # i = 0
+        # for candle in last5Candles:
+        #     percent = ((candles[(-6 + i)].getMedian() - candles[(-5 + i)].getMedian()) / candles[(-6 + i)].getMedian()) * -1
+        #     self.percentOfChange.append(percent)
+        #     if candle.isDoji():
+        #         doji += 1
+        #     i += 1
+        # medianChange = 0
+        # for i in range(candles.__len__()):
+        #     if i >= 1:
+        #         percent = ((candles[(i - 1)].getMedian() - candles[i].getMedian()) / candles[(i - 1)].getMedian()) * -1
+        #         medianChange += percent
+        # medianChange /= candles.__len__()
+        # if doji >= 2:
+        #     uncertainty = True
+        # if sum(self.percentOfChange) > 0:
+        #     self.upTendance = True
+        # else:
+        #     self.downTendance = True
+        # if not uncertainty and self.downTendance and sum(self.percentOfChange) > (3  * abs(medianChange)):
+        #     self.buying = True
+        # if not uncertainty and self.upTendance and sum(self.percentOfChange) < (3  * abs(medianChange)):
+        #     self.selling = True
 
 class Bot:
     def __init__(self):
