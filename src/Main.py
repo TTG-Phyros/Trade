@@ -9,6 +9,7 @@
 import sys
 import math
 
+
 class Pattern:
     def __init__(self):
         self.buying = False
