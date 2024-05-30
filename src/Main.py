@@ -60,7 +60,7 @@ class Pattern:
         candle2 = candles[-3]
         if (abs(candle2.getClose() - candle2.getOpen()) > 0.5 * (candle2.getHigh() - candle2.getLow()) and
             candle2.getClose() > candle2.getOpen() and
-            abs(candle1.getCLose() - candle1.getOpen()) <= 0.05 * (candle1.getHigh() - candle1.getLow()) and
+            abs(candle1.getClose() - candle1.getOpen()) <= 0.05 * (candle1.getHigh() - candle1.getLow()) and
             (candle1.getClose() + candle1.getOpen()) / 2 - candle1.getLow() >= 0.4 * (candle1.getHigh() - candle1.getLow()) and
             (candle1.getHigh() - candle1.getLow()) / 2 - candle1.getLow() <= 0.6 * (candle1.getHigh() - candle1.getLow()) and
             candle1.getLow() > candle2.getHigh() and
@@ -170,7 +170,7 @@ class Pattern:
             return AVGH, AVGL
         AVGH10_1, AVGL10_1 = calculate_moving(candles[-11:-1])
 
-        if (candle1.getCLose() -  candle1.getOpen() >= 0.7 * (candle1.getHigh() - candle1.getLow()) and
+        if (candle1.getClose() - candle1.getOpen() >= 0.7 * (candle1.getHigh() - candle1.getLow()) and
             candle1.getHigh() - candle1.getLow() >= AVGH10_1 - AVGL10_1 and
             candle0.getOpen() > candle1.getClose() and
             candle0.getClose() < candle1.getClose() - 0.5 * (candle1.getClose() - candle1.getOpen()) and candle0.getClose() > candle1.getOpen()):
@@ -722,7 +722,7 @@ class Pattern:
         candle0 = candles[-1]
 
         if (abs(candle2.getClose() - candle2.getOpen()) > 0.5 * (candle1.getHigh() - candle1.getLow()) and
-            candle2.getCLose() > candle2.getOpen() and
+            candle2.getClose() > candle2.getOpen() and
             candle1.getClose() < candle1.getOpen() and
             candle1.getHigh() < candle2.getClose() and
             candle1.getLow() > candle2.getOpen() and
@@ -839,7 +839,7 @@ class Pattern:
         candle0 = candles[-1]
 
         if (candle0.getHigh() == candle1.getHigh() and
-            abs(candle0.getClose() - candle0.getOpen) < 0.2 * abs(candle1.getClose() - candle1.getOpen()) and
+            abs(candle0.getClose() - candle0.getOpen()) < 0.2 * abs(candle1.getClose() - candle1.getOpen()) and
             abs(candle1.getClose() - candle1.getOpen()) >= 0.9 * (candle1.getHigh() - candle1.getLow()) and
             candle1.getHigh() - candle1.getLow() >= 1.3 * (AVGH20 - AVGL20)):
             self.buying = False
