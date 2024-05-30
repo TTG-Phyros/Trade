@@ -14,6 +14,18 @@ class Pattern:
         self.buying = False
         self.selling = False
         self.testDict = {
+            "abdandonedBaby" : self.isAbdandonedBaby,
+            "advancedBlockBearish" : self.isAdvancedBlockBearish,
+            "beltHoldBearish" : self.isBeltHoldBearish,
+            "breakawayBearish" : self.isBreakawayBearish,
+            "darkCloudCover" : self.isDarkCloudCover,
+            "deliberationBearish" : self.isdeliberationBearish,
+            "downsideGapThreeMethodsBearish" : self.isDownsideGapThreeMethodsBearish,
+            "downsideTasukiGapBearish" : self.isDownsideTasukiGapBearish,
+            "dojiStarBearish" : self.isDojiStarBearish,
+            "dojiGraveStoneBearish" : self.isDojiGraveStoneBearish,
+            "dragonFlyDojiBearish" : self.isDragonFlyDojiBearish,
+            "engulfingBearish" : self.isEngulfingBearish,
             "eveningDojiStarBearish" : self.isEveningDojiStarBearish,
             "eveningStarBearish" : self.isEveningStarBearish,
             "fallingThreeMethodsBearish" : self.isFallingThreeMethodsBearish,
@@ -32,12 +44,308 @@ class Pattern:
             "threeBlackCrowsBearish" : self.isThreeBlackCrowsBearish,
             "threeInsideDownBearish" : self.isThreeInsideDownBearish,
             "threeLineStrikeBearish" : self.isThreeLineStrikeBearish,
+            "threeOutsideDownBearish" : self.isThreeOutsideDownBearish,
             "trustingBearish" : self.isThrustingBearish,
             "triStarBearish" : self.isTriStarBearish,
             "tweezerTopBearish" : self.isTweezerTopBearish,
             "towCrowsBearish" : self.isTwoCrowsBearish,
             "upsideGapTwoCrowsBearish" : self.isUpsideGapTwoCrowsBearish,
         }
+
+    # ABS(C2 - O2) > .5 * (H2 - L2) AND C2 > O2 AND ABS(C1 - O1) <= .05 * (H1 - L1) AND (C1 + O1) / 2 - L1 >= .4 * (H1 - L1) AND
+    # (C1 + O1) / 2 - L1 <= .6 * (H1 - L1) AND L1 > H2 AND C < O AND H < L1 AND O > C2 AND (L > O2 OR C < L2)
+    def isAbdandonedBaby(self, candles):
+        candle0 = candles[-1]
+        candle1 = candles[-2]
+        candle2 = candles[-3]
+        if (abs(candle2.getClose() - candle2.getOpen()) > 0.5 * (candle2.getHigh() - candle2.getLow()) and
+            candle2.getClose() > candle2.getOpen() and
+            abs(candle1.getCLose() - candle1.getOpen()) <= 0.05 * (candle1.getHigh() - candle1.getLow()) and
+            (candle1.getClose() + candle1.getOpen()) / 2 - candle1.getLow() >= 0.4 * (candle1.getHigh() - candle1.getLow()) and
+            (candle1.getHigh() - candle1.getLow()) / 2 - candle1.getLow() <= 0.6 * (candle1.getHigh() - candle1.getLow()) and
+            candle1.getLow() > candle2.getHigh() and
+            candle0.getClose() < candle0.getOpen() and
+            candle0.getHigh() < candle1.getLow() and
+            candle0.getOpen() > candle2.getClose() and
+            (candle0.getLow() > candle2.getOpen() or candle0.getClose() < candle2.getLow())):
+            self.buying = False
+            self.selling = True
+            return True
+        return False
+
+    # H - L > AVGH21 - AVGL21 AND ABS(C1 - O1) > .5 * (H1 - L1) AND ABS(C2 - O2) > .5 * (H2 - L2) AND C > C1 AND C1 > C2 AND O1 > O2 AND
+    # O1 < C2 AND O > O1 AND O < C1 AND H - L < .8 * (H1 - L1) AND H1 - L1 < .8 * (H2 - L2) AND H - C > O - L AND H1 - C1 > O1 - L1
+    def isAdvancedBlockBearish(self, candles):
+        candle0 = candles[-1]
+        candle1 = candles[-2]
+        candle2 = candles[-3]
+        def movingAverage(candles):
+            high_prices = [candle.getHigh() for candle in candles]
+            low_prices = [candle.getLow() for candle in candles]
+            AVGH = sum(high_prices) / len(high_prices)
+            AVGL = sum(low_prices) / len(low_prices)
+            return AVGH, AVGL
+        AVGH21, AVGL21 = movingAverage(candles[-21:])
+        if (candle0.getHigh() - candle0.getLow() > AVGH21 - AVGL21 and
+            abs(candle1.getClose() - candle1.getOpen()) > 0.5 * (candle1.getHigh() - candle1.getLow()) and
+            abs(candle2.getClose() - candle2.getOpen()) > 0.5 * (candle2.getHigh() - candle2.getLow()) and
+            candle0.getClose() > candle1.getClose() and
+            candle1.getClose() > candle2.getClose() and
+            candle1.getOpen() > candle2.getOpen() and
+            candle1.getOpen() > candle2.getClose() and
+            candle1.getOpen() > candle2.getOpen() and
+            candle1.getOpen() < candle2.getClose() and
+            candle0.getOpen() > candle1.getOpen() and
+            candle0.getOpen() < candle1.getClose() and
+            candle0.getHigh() - candle1.getLow() < 0.8 * (candle1.getHigh() - candle1.getLow()) and
+            candle1.getHigh() - candle1.getLow() < 0.8 * (candle2.getHigh() - candle2.getLow()) and
+            candle0.getHigh() - candle0.getClose() > candle0.getOpen() - candle0.getLow() and
+            candle1.getHigh() - candle1.getClose() > candle1.getOpen() - candle1.getLow()):
+            self.buying = False
+            self.selling = True
+            return True
+        return False
+
+    # O = MAXO10 AND O > H1 AND O - C >= .7 * (H - L) AND H - L >= 1.2 * (AVGH10 - AVGL10) AND H - O <= .01 * (H - L) AND C >= H1 - .5 * (H1 - L1) AND H1 > L1 AND H > L AND C1 > C2 AND C2 < C3
+    def isBeltHoldBearish(self, candles):
+        candle0 = candles[-1]
+        candle1 = candles[-2]
+        candle2 = candles[-3]
+        candle3 = candles[-4]
+        def calculate_max_open(candles):
+            return max(candle.getOpen() for candle in candles)
+        MAXO10 = calculate_max_open(candles[-10:])
+        def calculate_moving(candles):
+            high_prices = [candle.getHigh() for candle in candles]
+            low_prices = [candle.getLow() for candle in candles]
+            AVGH = sum(high_prices) / len(high_prices)
+            AVGL = sum(low_prices) / len(low_prices)
+            return AVGH, AVGL
+        AVGH10, AVGL10 = calculate_moving(candles[-11:])
+        if (candle0.getOpen() == MAXO10 and
+            candle0.getOpen() > candle1.getHigh() and
+            candle0.getOpen() - candle0.getClose() >= 0.7 * (candle0.getHigh() - candle0.getLow()) and
+            candle0.getHigh() - candle0.getLow() >= 1.2 * (AVGH10 - AVGL10) and
+            candle0.getHigh() - candle0.getOpen() <= 0.01 * (candle0.getHigh() - candle0.getLow()) and
+            candle0.getClose() >= candle1.getHigh() - 0.5 * (candle1.getHigh() - candle1.getLow()) and
+            candle1.getHigh() > candle1.getLow() and
+            candle0.getHigh() > candle0.getLow() and
+            candle1.getClose() > candle2.getClose() and
+            candle2.getClose() < candle3.getClose()):
+            self.buying = False
+            self.selling = True
+            return True
+        return False
+
+    # ABS(C4 - O4) > .5 * (H4 - L4) AND C4 > O4 AND C3 > O3 AND L3 > H4 AND C2 > C3 AND C1 > C2 AND C < O AND L < H4 AND H > L3
+    def isBreakawayBearish(self, candles):
+        candle0 = candles[-1]
+        candle1 = candles[-2]
+        candle2 = candles[-3]
+        candle3 = candles[-4]
+        candle4 = candles[-5]
+        if (abs(candle4.getClose() - candle4.getOpen()) > 0.5 * (candle4.getHigh() - candle4.getLow()) and
+            candle4.getClose() > candle4.getOpen() and
+            candle3.getClose() > candle3.getOpen() and
+            candle3.getLow() > candle4.getHigh() and
+            candle2.getClose() > candle3.getClose() and
+            candle1.getClose() > candle2.getClose() and
+            candle0.getClose() < candle0.getOpen() and
+            candle0.getLow() < candle4.getHigh() and
+            candle0.getHigh() > candle3.getLow()):
+            self.buying = False
+            self.selling = True
+            return True
+        return False
+
+    # C1 - O1 >= .7 * (H1 - L1) AND H1 - L1 >= AVGH10.1 - AVGL10.1 AND O > C1 AND C < C1 - .5 * (C1 - O1) AND C > O1
+    def isDarkCloudCover(self, candles):
+        candle0 = candles[-1]
+        candle1 = candles[-2]
+        def calculate_moving(candles):
+            high_prices = [candle.getHigh() for candle in candles]
+            low_prices = [candle.getLow() for candle in candles]
+            AVGH = sum(high_prices) / len(high_prices)
+            AVGL = sum(low_prices) / len(low_prices)
+            return AVGH, AVGL
+        AVGH10_1, AVGL10_1 = calculate_moving(candles[-11:-1])
+
+        if (candle1.getCLose() -  candle1.getOpen() >= 0.7 * (candle1.getHigh() - candle1.getLow()) and
+            candle1.getHigh() - candle1.getLow() >= AVGH10_1 - AVGL10_1 and
+            candle0.getOpen() > candle1.getClose() and
+            candle0.getClose() < candle1.getClose() - 0.5 * (candle1.getClose() - candle1.getOpen()) and candle0.getClose() > candle1.getOpen()):
+            self.buying = False
+            self.selling = True
+            return True
+
+        return False
+
+
+    # ABS(C2 - O2) > .5 * (H2 - L2) AND ABS(C1 - O1) > .5 * (H1 - L1) AND C1 > C2 AND C2 > O2 AND C1 > O1 AND O > H1 AND (C + O) / 2 - L > .4 * (H - L) AND (C + O) / 2 - L < .6 * (H - L) AND ABS(C - O) < .6 * (H - L)
+    def isdeliberationBearish(self, candles):
+        candle0 = candles[-1]
+        candle1 = candles[-2]
+        candle2 = candles[-3]
+
+        if (abs(candle2.getClose() - candle2.getOpen()) > 0.5 * (candle2.getHigh() - candle2.getLow()) and
+            abs(candle1.getClose() - candle1.getOpen()) > 0.5 * (candle1.getHigh() - candle1.getLow()) and
+            candle1.getClose() > candle2.getClose() and
+            candle2.getClose() > candle2.getOpen() and
+            candle1.getClose() > candle1.getOpen() and
+            candle0.getOpen() > candle1.getHigh() and
+            (candle0.getClose() + candle0.getOpen()) / 2 - candle0.getLow() > 0.4 * (candle0.getHigh() - candle0.getLow()) and
+            abs(candle0.getClose() - candle0.getOpen()) < 0.6 * (candle0.getHigh() - candle0.getLow())):
+            self.buying = False
+            self.selling = True
+            return True
+
+        return False
+
+
+    # ABS(C2 - O2) > .5 * (H2 - L2) AND ABS(C1 - O1) > .5 * (H1 - L1) AND C2 < O2 AND C1 < O1 AND H1 < L2 AND L < H1 AND H > L2 AND C > O
+    def isDownsideGapThreeMethodsBearish(self, candles):
+        candle0 = candles[-1]
+        candle1 = candles[-2]
+        candle2 = candles[-3]
+
+        if (abs(candle2.getClose() - candle2.getOpen()) > 0.5 * (candle2.getHigh() - candle2.getLow()) and
+            abs(candle1.getClose() - candle1.getOpen()) > 0.5 * (candle1.getHigh() - candle1.getLow()) and
+            candle2.getClose() < candle2.getOpen() and
+            candle1.getClose() < candle1.getOpen() and
+            candle1.getHigh() < candle2.getLow() and
+            candle0.getLow() < candle1.getHigh() and 
+            candle0.getHigh() > candle2.getLow() and
+            candle0.getClose() > candle0.getOpen()):
+            self.buying = False
+            self.selling = True
+            return True
+        return False
+
+
+    # C2 < O2 AND C1 < O1 AND H1 < L2 AND O > C1 AND O < O1 AND C > H1 AND C < L2
+    def isDownsideTasukiGapBearish(self, candles):
+        candle0 = candles[-1]
+        candle1 = candles[-2]
+        candle2 = candles[-3]
+        if (candle2.getClose() < candle2.getOpen() and
+            candle1.getClose() < candle1.getOpen() and
+            candle1.getHigh() < candle2.getLow() and
+            candle0.getOpen() > candle1.getClose() and
+            candle0.getOpen() < candle1.getOpen() and
+            candle0.getClose() > candle0.getHigh() and
+            candle0.getClose() < candle2.getLow()):
+            self.buying = False
+            self.selling = True
+            return True
+        return False
+
+    # ABS(C1 - O1) > .5 * (H1 - L1) AND O > C1 AND ABS(C - O) < .05 * (H - L) AND H - L < .2 * (AVGH21 - AVGL21)
+    def isDojiStarBearish(self, candles):
+        candle0 = candles[-1]
+        candle1 = candles[-2]
+
+        O0, C0, H0, L0 = candle0.getOpen(), candle0.getClose(), candle0.getHigh(), candle0.getLow()
+        O1, C1, H1, L1 = candle1.getOpen(), candle1.getClose(), candle1.getHigh(), candle1.getLow()
+        def movingAverage(candles):
+            high_prices = [candle.getHigh() for candle in candles]
+            low_prices = [candle.getLow() for candle in candles]
+            AVGH = sum(high_prices) / len(high_prices)
+            AVGL = sum(low_prices) / len(low_prices)
+            return AVGH, AVGL
+        AVGH21, AVGL21 = movingAverage(candles[-21:])
+        condition_1 = abs(C1 - O1) > 0.5 * (H1 - L1)
+        condition_2 = O1 > C1
+        condition_3 = abs(C0 - O0) < 0.5 * (H0 - L0)
+        condition_4 = H0 - L0 < 0.2 * (AVGH21 - AVGL21)
+        if (condition_1 and condition_2 and condition_3 and condition_4):
+            self.buying = False
+            self.selling = True
+            return True
+        return False
+    
+    # ABS(O - C) <= .01 * (H - L) AND (H - C) >= .95 *(H - L) AND (H > L) AND (H = MAXH10) AND (H - L) >= (AVGH10 - AVGL10)
+    def isDojiGraveStoneBearish(self, candles):
+        candle0 = candles[-1]
+
+        O0, C0, H0, L0 = candle0.getOpen(), candle0.getClose(), candle0.getHigh(), candle0.getLow()
+        def calculate_moving(candles):
+            high_prices = [candle.getHigh() for candle in candles]
+            low_prices = [candle.getLow() for candle in candles]
+            AVGH = sum(high_prices) / len(high_prices)
+            AVGL = sum(low_prices) / len(low_prices)
+            return AVGH, AVGL
+        AVGH10, AVGL10 = calculate_moving(candles[-11:])
+        def calculate_max_high(candles):
+            return max(candle.getHigh() for candle in candles)
+
+        MAXH10 = calculate_max_high(candles[-10:])
+        condition_1 = abs(O0 - C0) <= 0.1 * (H0 - L0)
+        condition_2 = (H0 - C0) >= 0.95 * (H0 - L0)
+        condition_3 = (H0 > L0)
+        condition_4 = (H0 == MAXH10)
+        condition_5 = (H0 - L0) >= (AVGH10 - AVGL10)
+        if (condition_1 and condition_2 and condition_3 and condition_4 and condition_5):
+            self.buying = False
+            self.selling = True
+            return True
+        return False
+
+    # ABS(O - C) <= .02 * (H - L) AND (H - C) <= .3 * (H - L) AND (H - L) >= (AVGH10 - AVGL10) AND (H > L) AND (H = MAXH10)
+    def isDragonFlyDojiBearish(self, candles):
+        candle0 = candles[-1]
+
+        O0, C0, H0, L0 = candle0.getOpen(), candle0.getClose(), candle0.getHigh(), candle0.getLow()
+        def calculate_moving(candles):
+            high_prices = [candle.getHigh() for candle in candles]
+            low_prices = [candle.getLow() for candle in candles]
+            AVGH = sum(high_prices) / len(high_prices)
+            AVGL = sum(low_prices) / len(low_prices)
+            return AVGH, AVGL
+        AVGH10, AVGL10 = calculate_moving(candles[-11:])
+        def calculate_max_high(candles):
+            return max(candle.getHigh() for candle in candles)
+
+        MAXH10 = calculate_max_high(candles[-10:])
+
+        condition_1 = abs(O0 - C0) <= 0.2 * (H0 - L0)
+        condition_2 = (H0 - C0) <= 0.3 * (H0 - L0)
+        condition_3 = (H0 - L0) >= (AVGH10 - AVGL10)
+        condition_4 = (H0 > L0)
+        condition_5 = (H0 == MAXH10)
+        if (condition_1 and condition_2 and condition_3 and condition_4 and condition_5):
+            self.buying = False
+            self.selling = True
+            return True
+        return False
+
+    # C1 > O1 AND O - C >= .7 * (H - L) AND C < O1 AND O > C1 AND H - L >= 1.2 * (AVGH10 - AVGL10)
+    def isEngulfingBearish(self, candles):
+        candle0 = candles[-1]
+        candle1 = candles[-2]
+
+        O0, C0, H0, L0 = candle0.getOpen(), candle0.getClose(), candle0.getHigh(), candle0.getLow()
+        O1, C1 = candle1.getOpen(), candle1.getClose()
+
+        def calculate_moving(candles):
+            high_prices = [candle.getHigh() for candle in candles]
+            low_prices = [candle.getLow() for candle in candles]
+            AVGH = sum(high_prices) / len(high_prices)
+            AVGL = sum(low_prices) / len(low_prices)
+            return AVGH, AVGL
+        AVGH10, AVGL10 = calculate_moving(candles[-11:])
+        
+        condition_1 = C1 > O1
+        condition_2 = O0 - C0 >= 0.7 * (H0 - L0)
+        condition_3 = C0 < O1
+        condition_4 = O0 > C1
+        condition_5 = H0 - L0 >= 1.2 * (AVGH10 - AVGL10)
+
+        if (condition_1 and condition_2 and condition_3 and condition_4 and condition_5):
+            self.buying = False
+            self.selling = True
+            return True
+        return False
+    
     # ABS(C2 - O2) > .5 * (H - L) AND C2 > O2 AND ABS(C1 - O1) < .05 * (H1 - L1) AND H1 - L1 < .2 * (AVGH21.1 - AVGL21.1) AND O1 > C2 AND C < O
     def isEveningDojiStarBearish(self, candles):
         candle0 = candles[-1]
@@ -48,14 +356,14 @@ class Pattern:
         O1, C1, H1, L1 = candle1.getOpen(), candle1.getClose(), candle1.getHigh(), candle1.getLow()
         O2, C2, H2, L2 = candle2.getOpen(), candle2.getClose(), candle2.getHigh(), candle2.getLow()
 
-        def calculate_moving_average_high_low(candles):
+        def calculate_moving(candles):
             high_prices = [candle.getHigh() for candle in candles]
             low_prices = [candle.getLow() for candle in candles]
             AVGH = sum(high_prices) / len(high_prices)
             AVGL = sum(low_prices) / len(low_prices)
             return AVGH, AVGL
 
-        AVGH21_1, AVGL21_1 = calculate_moving_average_high_low(candles[-22:-1])
+        AVGH21_1, AVGL21_1 = calculate_moving(candles[-22:-1])
 
         condition_1 = abs(C2 - O2) > 0.5 * (H2 - L2)
         condition_2 = C2 > O2
