@@ -3,7 +3,7 @@ OUTPUT_FILE = trade
 all: $(OUTPUT_FILE)
 
 
-$(OUTPUT_FILE) : src/trade.py
+$(OUTPUT_FILE) : src/Main.py
 	cp $< $@
 	chmod 777 $@
 
